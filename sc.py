@@ -1,23 +1,32 @@
 import scanpy
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+from pyPLNmodels import PLN, PLNPCA
 
 
-data = scanpy.read_h5ad("2k_cell_per_study_10studies.h5ad")
-# print('array', data.X.toarray().shape)
 
-X = data.X.toarray()
-y = data.obs['standard_true_celltype_v5']
-le = LabelEncoder()
-y = le.fit_transform(y)
-max_class = 5
-filter = y< max_class
-y = y[filter]
-X = X[filter]
-not_only_zeros = np.sum(X, axis = 0)>0
-X = X[:,not_only_zeros]
-var = np.var(X, axis = 0)
-dim = 50
-most_variables = np.argsort(var)[-dim:]
-X = X[:,most_variables]
-print('X :', X[50:400])
+def get_Y_and_GT(number_of_classes = 28, number_of_dimension = 15000, number_of_samples = 20000):
+    """
+    Takes the first "number_of_classes" classes and the
+    "number of dimension" variables which have the more variance.
+    Y corresponds to the counts, and Gt to the ground truth.
+    """
+    data = scanpy.read_h5ad("2k_cell_per_study_10studies.h5ad")
+    Y = data.X.toarray()[:number_of_samples]
+    GT = data.obs['standard_true_celltype_v5'][:number_of_samples]
+    le = LabelEncoder()
+    GT = le.fit_transform(GT)
+    filter = GT< number_of_classes
+    GT = GT[filter]
+    Y = Y[filter]
+    not_only_zeros = np.sum(Y, axis = 0)>0
+    Y = Y[:,not_only_zeros]
+    var = np.var(Y, axis = 0)
+    most_variables = np.argsort(var)[-number_of_dimension:]
+    Y = Y[:,most_variables]
+    return Y,GT
+
+Y,GT = get_Y_and_GT(number_of_classes = 5, number_of_dimension = 1000)
+plnpca = PLNPCA(q = 5)
+plnpca.fit(Y, verbose = True)
+print(plnpca)
