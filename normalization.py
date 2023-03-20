@@ -5,10 +5,9 @@ import numpy as np
 import torch
 import pickle
 from pyPLNmodels import PLNPCA, PLN
-from utils import get_real_data, log_normalization
+from utils import get_real_data, log_normalization, get_test_accuracy
 from sklearn import svm
 from umap import UMAP
-from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_score
 
 if torch.cuda.is_available():
@@ -17,25 +16,9 @@ else:
     DEVICE = "cpu"
 
 
-def get_test_accuracy(X, y):
-    xgb = XGBClassifier()
-    svmclf = svm.SVC()
-    if isinstance(X, torch.Tensor):
-        X = X.cpu()
-    if isinstance(y, torch.Tensor):
-        y = y.cpu()
-    score_xgb = np.mean(cross_val_score(xgb, X, y, cv=cv, scoring="balanced_accuracy"))
-    score_svm = np.mean(
-        cross_val_score(svmclf, X, y, cv=cv, scoring="balanced_accuracy")
-    )
-    return {"xgb": score_xgb, "svm": score_svm}
-
-
-
 
 def test_dimension(max_dim, plot=False):
     Y, GT = get_real_data(max_n=n, max_class=8, max_dim=max_dim)
-
     ## log normalization
     lognorm_score = get_test_accuracy(log_normalization(Y), GT)
 
@@ -165,7 +148,7 @@ def test_dimensions(max_dims, plot=False):
 
 
 def plot_res(res, dims):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = (15,15))
     for score in res:
         label = score["name"]
         to_plot_xgb = list(score["xgb"])
@@ -184,30 +167,22 @@ def plot_res(res, dims):
             color="red",
             linestyle=score["linestyle"],
         )
-        ax.legend()
+    ax.set_xlabel("Number of genes took")
+    ax.set_ylabel("Balanced accuracy score")
+    ax.legend()
+    plt.savefig("accuracy_score.pdf", format = "pdf")
     plt.show()
 
 
-RANKS = [10, 80]
-cv = 10
-n = 5000
-max_dims = [
-    80,
-    100,
-    150,
-    250,
-    400,
-    600,
-    800,
-    1000,
-    1300,
-    1500,
-    1800,
-    2000,
-    2500,
-    3000,
-    4000,
-]
+class launching_args():
+    def __init__(self, RANKS, cv):
+        pass
+
+
+RANKS = [5,8]
+cv = 2
+n = 50
+max_dims = [10,12]
 
 need_to_compute = False
 file_name = f"n={n}cv={cv}"
