@@ -3,6 +3,10 @@ from sklearn.preprocessing import LabelEncoder
 import scanpy
 import math
 from xgboost import XGBClassifier
+from sklearn import svm
+import torch
+from sklearn.model_selection import cross_val_score
+
 
 def get_real_data(max_class=5, max_n=200, max_dim=100):
     data = scanpy.read_h5ad(
@@ -25,7 +29,7 @@ def get_real_data(max_class=5, max_n=200, max_dim=100):
 def log_normalization(Y):
     return np.log(Y + (Y == 0) * math.exp(-2))
 
-def get_test_accuracy(X, y):
+def get_test_accuracy(X, y, cv):
     xgb = XGBClassifier()
     svmclf = svm.SVC()
     if isinstance(X, torch.Tensor):
