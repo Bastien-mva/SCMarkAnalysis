@@ -24,8 +24,9 @@ if torch.cuda.is_available():
     DEVICE = "cuda"
 else:
     DEVICE = "cpu"
-if len(RANKS)>2:
+if len(RANKS) > 2:
     raise Exception("Trop de rang vont etre pris en compte")
+
 
 def test_dimension(max_dim, plot=False):
     Y, GT = get_real_data(max_n=n, max_class=8, max_dim=max_dim)
@@ -219,7 +220,7 @@ class launching_arguments:
 
 
 def get_proccessed_raw_dict(raw_dict):
-    print('raw dict ', raw_dict)
+    print("raw dict ", raw_dict)
     process_dict = {key: {"xgb": [], "svm": []} for key in raw_dict.keys()}
 
     for normalizer_name, list_scores in raw_dict.items():
@@ -228,10 +229,13 @@ def get_proccessed_raw_dict(raw_dict):
             process_dict[normalizer_name]["svm"].append(score["svm"])
     return process_dict
 
+
 class plot_args:
     def __init__(self, normalizers, la):
         self.normalizers = normalizers
-        self.raw_dict_of_scores = {normalizer.name: [] for normalizer in self.normalizers}
+        self.raw_dict_of_scores = {
+            normalizer.name: [] for normalizer in self.normalizers
+        }
         self.la = la
 
     @property
@@ -240,14 +244,21 @@ class plot_args:
 
     def plot(self, dimensions):
 
-        fig, axes = plt.subplots(2,figsize = (15, 15))
-        for my_normalizer,dict_of_scores in zip(self.normalizers,self.processed_dict_of_scores.values()):
-            axes[0].plot(dimensions, dict_of_scores["xgb"], label = my_normalizer.label_name)
-            axes[1].plot(dimensions, dict_of_scores["svm"], label = my_normalizer.label_name)
+        fig, axes = plt.subplots(2, figsize=(15, 15))
+        for my_normalizer, dict_of_scores in zip(
+            self.normalizers, self.processed_dict_of_scores.values()
+        ):
+            axes[0].plot(
+                dimensions, dict_of_scores["xgb"], label=my_normalizer.label_name
+            )
+            axes[1].plot(
+                dimensions, dict_of_scores["svm"], label=my_normalizer.label_name
+            )
         axes[0].set_title("xgboost scores")
         axes[1].set_title("svm scores")
         plt.legend()
         plt.show()
+
 
 def launch_dimension(la, pa, dimension):
     Y, GT = get_real_data(max_n=la.n, max_class=la.max_class, max_dim=dimension)
@@ -271,7 +282,7 @@ def launch_dimension(la, pa, dimension):
 n = 3000
 max_class = 15
 cv = 8
-dimensions = np.arange(80,200, 5)
+dimensions = np.arange(80, 220, 5)
 
 if np.max(RANKS) > np.max(dimensions):
     raise Exception("ranks are higher than dimensions")

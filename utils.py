@@ -8,10 +8,8 @@ import torch
 from sklearn.model_selection import cross_val_score
 
 
-def get_real_data(max_class=5, max_n=200, max_dim=100):
-    data = scanpy.read_h5ad(
-    "2k_cell_per_study_10studies.h5ad"
-    )
+def get_sc_mark_data(max_class=5, max_n=200, max_dim=100):
+    data = scanpy.read_h5ad("2k_cell_per_study_10studies.h5ad")
     Y = data.X.toarray()[:max_n]
     GT = data.obs["standard_true_celltype_v5"][:max_n]
     le = LabelEncoder()
@@ -26,8 +24,10 @@ def get_real_data(max_class=5, max_n=200, max_dim=100):
     Y = Y[:, most_variables]
     return Y, GT
 
+
 def log_normalization(Y):
     return np.log(Y + (Y == 0) * math.exp(-2))
+
 
 def get_test_accuracy(X, y, cv):
     xgb = XGBClassifier()
@@ -41,6 +41,3 @@ def get_test_accuracy(X, y, cv):
         cross_val_score(svmclf, X, y, cv=cv, scoring="balanced_accuracy")
     )
     return {"xgb": score_xgb, "svm": score_svm}
-
-
-
