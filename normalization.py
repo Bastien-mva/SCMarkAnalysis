@@ -126,7 +126,7 @@ n = 3000
 max_class = 15
 cv = 8
 dimensions = np.arange(80, 220, 5)
-
+dimensions = np.concatenate((dimensions, np.arange(220,1500, 30)))
 if np.max(RANKS) > np.max(dimensions):
     raise Exception("ranks are higher than dimensions")
 
