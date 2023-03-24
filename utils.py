@@ -28,6 +28,9 @@ def get_sc_mark_data(max_class=5, max_n=200, max_dim=100):
 def log_normalization(Y):
     return np.log(Y + (Y == 0) * math.exp(-2))
 
+def remove_sequencing_depth(Y):
+    return Y/(np.log(np.sum(Y, axis = 1)).reshape(-1,1))
+
 
 def get_test_accuracy(X, y, cv):
     xgb = XGBClassifier()
