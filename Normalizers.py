@@ -29,7 +29,7 @@ class pln(normalizer):
         self.model = PLN()
 
     def fit(self, Y):
-        self.model.fit(Y, O_formula="sum")
+        self.model.fit(Y, O_formula="sum",tol = 0.0001)
 
     def get_normalized_matrix(self):
         return self.model.latent_variables
@@ -43,7 +43,7 @@ class plnzero(normalizer):
         self.model = PLN()
 
     def fit(self, Y):  ## kwargs ????
-        self.model.fit(Y, O_formula=None)
+        self.model.fit(Y, O_formula=None,tol = 0.0001)
 
     def get_normalized_matrix(self):
         return self.model.latent_variables
@@ -64,7 +64,7 @@ class lognorm(normalizer):
 
 class plnpca(normalizer, ABC):
     def fit(self, Y):
-        self.model.fit(Y, O_formula="sum")
+        self.model.fit(Y, O_formula="sum",tol = 0.0001)
 
     def get_normalized_matrix(self):
         if self.project is True:
