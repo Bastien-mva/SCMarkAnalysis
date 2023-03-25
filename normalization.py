@@ -16,6 +16,8 @@ from Normalizers import (
     plnpca_vlr_notprojected,
     plnpca_lr_notprojected,
     plnpca_lr_projected,
+    pcalognorm80,
+    pcalognorm10,
     RANKS,
 )
 from umap import UMAP
@@ -104,7 +106,7 @@ class plot_args:
 
 
 def launch_dimension(la, pa, dimension):
-    Y, GT = get_sc_mark_data(max_n=la.n, max_class=la.max_class, max_dim=dimension)
+    Y, GT,_ = get_sc_mark_data(max_n=la.n, max_class=la.max_class, max_dim=dimension)
     for my_normalizer in la.normalizers:
         if (
             la.check_if_normalizer_already_launched_dim(dimension, my_normalizer)
@@ -126,7 +128,7 @@ n = 3000
 max_class = 15
 cv = 8
 dimensions = np.arange(80, 220, 5)
-dimensions = np.concatenate((dimensions, np.arange(220,1500, 15)))
+dimensions = np.concatenate((dimensions, np.arange(220,1390, 15)))
 if np.max(RANKS) > np.max(dimensions):
     raise Exception("ranks are higher than dimensions")
 
@@ -138,6 +140,8 @@ my_normalizers = [
     plnpca_lr_notprojected(),
     plnpca_vlr_notprojected(),
     lognorm(),
+    pcalognorm80(),
+    pcalognorm10(),
 ]
 la = launching_arguments(n, max_class, cv, my_normalizers)
 pa = plot_args(my_normalizers, la)

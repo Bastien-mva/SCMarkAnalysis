@@ -1,6 +1,7 @@
 from utils import log_normalization
 from pyPLNmodels import PLNPCA, PLN
 from abc import ABC, abstractmethod
+from sklearn.decomposition import PCA
 
 RANKS = [10, 80]
 
@@ -60,9 +61,33 @@ class lognorm(normalizer):
 
     def get_normalized_matrix(self):
         return self.logY
+class pcalognorm80(lognorm):
+    label_name="log normalization 80"
+
+    def __init__(self):
+        self.name = "log_norm_pca80"
+        self.projected = False
+        self.fitted = False
+    def fit(self,Y):
+        super().fit(Y)
+        pca = PCA(n_components=80)
+        self.logY = pca.fit_transform(self.logY)
+class pcalognorm10(lognorm):
+    label_name="log normalization 10"
+
+    def __init__(self):
+        self.name = "log_norm_pca10"
+        self.projected = False
+        self.fitted = False
+
+    def fit(self,Y):
+        super().fit(Y)
+        pca = PCA(n_components=10)
+        self.logY = pca.fit_transform(self.logY)
 
 
 class plnpca(normalizer, ABC):
+
     def fit(self, Y):
         self.model.fit(Y, O_formula="sum",tol = 0.0001)
 
