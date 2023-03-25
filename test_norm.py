@@ -15,22 +15,23 @@ from sklearn.svm import SVC
 
 fitting_models = {
     "KNeighbors": KNeighborsClassifier(),
-    "MLP": MLPClassifier(),
-    "DecisionTree": DecisionTreeClassifier(),
-    "xgbc": XGBClassifier(),
-    "logreg": LogisticRegression(),
+    # "MLP": MLPClassifier(),
+    # "DecisionTree": DecisionTreeClassifier(),
+    # "xgbc": XGBClassifier(),
+    # "logreg": LogisticRegression(),
     "SVC": SVC(),
 }
+colors = {"KNeighbors": "blue", "MLP": "black", "DecisionTree":"green", "xgbc":"red", "logreg":"pink", "SVC":"orange"}
 
 
 fitting_scores = {
     model: {"proj": [], "notproj": []} for model in fitting_models.keys()
 }
 def plot_scores(fitting_scores, ranks):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots( figsize = (30,15))
     for modelname, proj_and_not_proj in fitting_scores.items():
-        ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--')
-        ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-')
+        ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--', color = colors[modelname])
+        ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-', color = colors[modelname])
     plt.legend()
 
 n = 3000
@@ -40,18 +41,18 @@ dimension = 100
 cv = 10
 Y, GT, GT_names = get_sc_mark_data(max_n=n, max_class=max_class, max_dim=dimension)
 
-rank_pca = [2, 7,10, 20,30, 60, 80]#, 80, 150]
+rank_pca = [2, 7,10]#, 20,30, 60, 80]#, 80, 150]
 
 pca = PLNPCA(ranks=rank_pca)
 
-pca.fit(Y, tol=0.1)
-for rank in rank_pca:
-    pca[rank].save_model(str(rank))
-
+# pca.fit(Y, tol=0.1)
 # for rank in rank_pca:
-#     pca[rank].load_model_from_file(str(rank))
+#     pca[rank].save_model(str(rank))
 
-fig, axes = plt.subplots(len(rank_pca), 2)
+for rank in rank_pca:
+    pca[rank].load_model_from_file(str(rank))
+
+fig, axes = plt.subplots(len(rank_pca), 2, figsize = (30,15))
 
 def get_score(fitting_model, X, y, cv):
     if isinstance(X, torch.Tensor):
