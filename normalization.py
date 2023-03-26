@@ -101,6 +101,7 @@ class plot_args:
             )
         axes[0].set_title("xgboost scores")
         axes[1].set_title("svm scores")
+        plt.savefig("xgboost_svm_scores.pdf", format="pdf")
         plt.legend()
         plt.show()
 
@@ -134,12 +135,12 @@ if np.max(RANKS) > np.max(dimensions):
 
 my_normalizers = [
     pln(),
-    plnzero(),
-    plnpca_lr_projected(),
-    plnpca_vlr_projected(),
+    # plnzero(),
+    # plnpca_lr_projected(),
+    # plnpca_vlr_projected(),
     plnpca_lr_notprojected(),
     plnpca_vlr_notprojected(),
-    lognorm(),
+    # lognorm(),
     pcalognorm80(),
     pcalognorm10(),
 ]
