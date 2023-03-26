@@ -25,13 +25,14 @@ colors = {"KNeighbors": "blue", "MLP": "black", "DecisionTree":"green", "xgbc":"
 
 
 fitting_scores = {
-    model: {"proj": [], "notproj": []} for model in fitting_models.keys()
+        model: {"proj": [], "notproj": [], "pcaproj":[]} for model in fitting_models.keys()
 }
 def plot_scores(fitting_scores, ranks):
     fig, ax = plt.subplots( figsize = (30,15))
     for modelname, proj_and_not_proj in fitting_scores.items():
         ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--', color = colors[modelname])
         ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-', color = colors[modelname])
+        ax.plot(ranks,proj_and_not_proj["pcaproj"], label = modelname + "pcaproj", linestyle = 'dotted', color = colors[modelname])
     plt.legend()
 
 n = 3000
@@ -52,7 +53,7 @@ pca = PLNPCA(ranks=rank_pca)
 for rank in rank_pca:
     pca[rank].load_model_from_file(str(rank))
 
-fig, axes = plt.subplots(len(rank_pca), 2, figsize = (30,15))
+fig, axes = plt.subplots(len(rank_pca), 3, figsize = (30,15))
 
 def get_score(fitting_model, X, y, cv):
     if isinstance(X, torch.Tensor):
@@ -68,19 +69,26 @@ def get_plot_args(pcamodel, axe, cv):
     print('actual dim:', pcamodel._q)
     Y_proj = pcamodel.get_projected_latent_variables(pcamodel._q)
     Y_notproj = pcamodel.latent_variables
+    Y_pcaproj = pcamodel.get_pca_projected_latent_variables(pcamodel._q)
     dr = UMAP()
     dr_proj = dr.fit_transform(Y_proj)
     dr_not_proj = dr.fit_transform(Y_notproj)
+    dr_pcaproj = dr.fit_transform(Y_pcaproj)
+
     sns.scatterplot(x = dr_proj[:,0], y = dr_proj[:,1], hue=GT_names, ax=axe[0])
     axe[0].set_title(f"Projection with {pcamodel._q} axes after a projection")
     sns.scatterplot(x = dr_not_proj[:,0], y = dr_not_proj[:,1], hue=GT_names, ax=axe[1])
     axe[1].set_title(f"Projection with {pcamodel._q} axes")
+    sns.scatterplot(x = dr_pcaproj[:,0], y = dr_pcaproj[:,1], hue=GT_names, ax=axe[1])
+    axe[1].set_title(f"Projection with {pcamodel._q} axes after pca projection")
 
     for name, model in fitting_models.items():
         score_proj = get_score(model, Y_proj, GT, cv)
         score_notproj = get_score(model, Y_notproj, GT, cv)
+        score_pcaproj = get_score(model, Y_pcaproj, GT, cv)
         fitting_scores[name]["proj"].append(score_proj)
         fitting_scores[name]["notproj"].append(score_notproj)
+        fitting_scores[name]["pcaproj"].append(score_pcaproj)
 
 
 for (axe,pcamodel) in zip(axes,pca.models):
