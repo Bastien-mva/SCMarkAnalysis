@@ -16,6 +16,7 @@ from Normalizers import (
     plnpca_vlr_notprojected,
     plnpca_lr_notprojected,
     plnpca_lr_projected,
+    plnpca_lr_pcaprojected,
     pcalognorm80,
     pcalognorm10,
     RANKS,
@@ -101,8 +102,8 @@ class plot_args:
             )
         axes[0].set_title("xgboost scores")
         axes[1].set_title("svm scores")
-        plt.savefig("xgboost_svm_scores.pdf", format="pdf")
         plt.legend()
+        plt.savefig("xgboost_svm_scores.pdf", format="pdf")
         plt.show()
 
 
@@ -129,18 +130,19 @@ n = 3000
 max_class = 15
 cv = 8
 dimensions = np.arange(80, 220, 5)
-dimensions = np.concatenate((dimensions, np.arange(220,1390, 15)))
+dimensions = np.concatenate((dimensions, np.arange(220,1395, 15)))
 if np.max(RANKS) > np.max(dimensions):
     raise Exception("ranks are higher than dimensions")
 
 my_normalizers = [
     pln(),
     # plnzero(),
-    # plnpca_lr_projected(),
-    # plnpca_vlr_projected(),
+    plnpca_lr_projected(),
+    plnpca_vlr_projected(),
     plnpca_lr_notprojected(),
-    plnpca_vlr_notprojected(),
-    # lognorm(),
+    # plnpca_vlr_notprojected(),
+    plnpca_lr_pcaprojected(),
+    lognorm(),
     pcalognorm80(),
     pcalognorm10(),
 ]

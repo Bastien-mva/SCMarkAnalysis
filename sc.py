@@ -5,22 +5,22 @@ import matplotlib.pyplot as plt
 from umap import UMAP
 import pandas as pd
 import seaborn as sns
-max_dim = 120
-Y, GT, GT_name = get_sc_mark_data(max_class=5, max_dim=max_dim, max_n = 490)
-best_rank = 24
+
+max_dim = 3000
+best_rank = 48
+Y, GT, GT_name = get_sc_mark_data(max_class=5, max_dim=max_dim, max_n = 4900)
 
 # plnpca = PLNPCA(ranks=[best_rank])
 # plnpca.fit(Y, verbose=True, tol = 0.0001)
 # plnpca.best_model().save_model("best_model")
-# best_rank = 24
 plnpca = PLNPCA(ranks= best_rank)
 
 plnpca.load_model_from_file(best_rank,"best_model")
 plnpca[best_rank].fitted = True
-latent_variables = plnpca[best_rank].get_projected_latent_variables(nb_dim = 24)
+latent_variables = plnpca[best_rank].get_projected_latent_variables(nb_dim = 24).cpu()
 dr = UMAP()
 dr_lognorm = dr.fit_transform(log_normalization(Y))
-drlv = dr.fit_transform(latent_variables)
+drlv = dr.fit_transform(latent_variables.cpu())
 
 
 fig, axes = plt.subplots(3, figsize =(25,15))

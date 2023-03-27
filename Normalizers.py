@@ -62,7 +62,7 @@ class lognorm(normalizer):
     def get_normalized_matrix(self):
         return self.logY
 class pcalognorm80(lognorm):
-    label_name="log normalization 80"
+    label_name="log normalization with 80 PCs"
 
     def __init__(self):
         self.name = "log_norm_pca80"
@@ -73,7 +73,7 @@ class pcalognorm80(lognorm):
         pca = PCA(n_components=80)
         self.logY = pca.fit_transform(self.logY)
 class pcalognorm10(lognorm):
-    label_name="log normalization 10"
+    label_name="log normalization with 10 PCs"
 
     def __init__(self):
         self.name = "log_norm_pca10"
@@ -93,13 +93,13 @@ class plnpca(normalizer, ABC):
 
     def get_normalized_matrix(self):
         if self.project is True:
-            return self.model.best_model().projected_latent_variables
+            return self.model.best_model().get_projected_latent_variables(nb_dim = self.model.best_model()._q)
         else:
             return self.model.best_model().latent_variables
 
 
 class plnpca_vlr_projected(plnpca):
-    label_name = f"plnpca with rank {RANKS[0]} projected"
+    label_name = f"plnpca q={RANKS[0]} projected with ortho C in dim {RANKS[0]}"
 
     def __init__(self):
         super().__init__("plnpca_vlr_proj_norm")
@@ -108,7 +108,7 @@ class plnpca_vlr_projected(plnpca):
 
 
 class plnpca_vlr_notprojected(plnpca):
-    label_name = f"plnpca with {RANKS[0]}"
+    label_name = f"plnpca q={RANKS[0]} not projected"
 
     def __init__(self):
         super().__init__("plnpca_vlr_notproj_norm")
@@ -117,16 +117,28 @@ class plnpca_vlr_notprojected(plnpca):
 
 
 class plnpca_lr_projected(plnpca):
-    label_name = f"plnpca with {RANKS[1]} projected"
+    label_name = f"plnpca q={RANKS[1]} projected with orthoC in dim{RANKS[1]}"
 
     def __init__(self):
         super().__init__("plnpca_lr_proj_norm")
         self.model = PLNPCA(ranks=[RANKS[1]])
         self.project = True
 
+class plnpca_lr_pcaprojected(plnpca):
+    label_name = f"plnpca with q={RANKS[1]} projected with pca in dim{RANKS[1]}"
+
+    def __init__(self):
+        super().__init__("plnpca_lr_pcaproj_norm")
+        self.model = PLNPCA(ranks=[RANKS[1]])
+        self.project = True
+
+    def get_normalized_matrix(self):
+        return self.model.best_model().get_pca_projected_latent_variables(nb_dim = self.model.best_model()._q)
+
+
 
 class plnpca_lr_notprojected(plnpca):
-    label_name = f"plnpca with {RANKS[1]}"
+    label_name = f"plnpca with {RANKS[1]} not projected"
 
     def __init__(self):
         super().__init__("plnpca_lr_notproj_norm")
