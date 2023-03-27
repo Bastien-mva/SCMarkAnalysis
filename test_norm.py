@@ -14,44 +14,53 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
 fitting_models = {
-    "KNeighbors": KNeighborsClassifier(),
+    # "KNeighbors": KNeighborsClassifier(),
     # "MLP": MLPClassifier(),
-    # "DecisionTree": DecisionTreeClassifier(),
+    "DecisionTree": DecisionTreeClassifier(),
     # "xgbc": XGBClassifier(),
     # "logreg": LogisticRegression(),
-    "SVC": SVC(),
+    # "SVC": SVC(),
 }
 colors = {"KNeighbors": "blue", "MLP": "black", "DecisionTree":"green", "xgbc":"red", "logreg":"pink", "SVC":"orange"}
 
 
 fitting_scores = {
-        model: {"proj": [], "notproj": [], "pcaproj":[]} for model in fitting_models.keys()
+        model: {"proj": {"score":[], "var":[]} "notproj": {"score":[], "var":[]}, "pcaproj":{"score":[], "var":[]}} for model in fitting_models.keys()
 }
+pcamodels = ["proj", "notproj", "pcaproj"]
+
+def plot_one_norm(ranks, proj_and_not_proj, modelname, linestyle, ax):
+    for key in proj_and_not_proj.keys():
+        ax.plot(ranks, proj_and_not_proj[key]["score"], label = modelname+key, linestyle = linestyle)
+
 def plot_scores(fitting_scores, ranks):
-    fig, ax = plt.subplots( figsize = (30,15))
-    for modelname, proj_and_not_proj in fitting_scores.items():
-        ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--', color = colors[modelname])
-        ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-', color = colors[modelname])
-        ax.plot(ranks,proj_and_not_proj["pcaproj"], label = modelname + "pcaproj", linestyle = 'dotted', color = colors[modelname])
-    plt.legend()
+    fig, axes = plt.subplots(len(fitting_scores.keys()), figsize = (30,15))
+    for ax in axes:
+        for modelname, proj_and_not_proj in fitting_scores.items():
+            ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--', color = colors[modelname])
+            ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-', color = colors[modelname])
+            ax.plot(ranks,proj_and_not_proj["pcaproj"], label = modelname + "pcaproj", linestyle = 'dotted', color = colors[modelname])
+    # plt.legend()
+
 
 n = 3000
 max_class = 15
-cv = 8
-dimension = 100
+dimension = 300
 cv = 10
+tol = 0.0001
 Y, GT, GT_names = get_sc_mark_data(max_n=n, max_class=max_class, max_dim=dimension)
-
-rank_pca = [2, 7,10]#, 20,30, 60, 80]#, 80, 150]
+name= f"n{n}max_class{max_class}dimension{dimension}cv{cv}tol{tol}"
+# rank_pca = [2, 7,10]#, 20,30, 60, 80]#, 80, 150]
+rank_pca = [10,20,30,60,80]
 
 pca = PLNPCA(ranks=rank_pca)
 
-# pca.fit(Y, tol=0.1)
-# for rank in rank_pca:
-#     pca[rank].save_model(str(rank))
+pca.fit(Y, tol=tol)
+for rank in rank_pca:
+    pca[rank].save_model(str(rank)+ name)
 
 for rank in rank_pca:
-    pca[rank].load_model_from_file(str(rank))
+    pca[rank].load_model_from_file(str(rank)+ name)
 
 fig, axes = plt.subplots(len(rank_pca), 3, figsize = (30,15))
 
@@ -60,43 +69,46 @@ def get_score(fitting_model, X, y, cv):
         X = X.cpu()
     if isinstance(y, torch.Tensor):
         y = y.cpu()
-    score = np.mean(
-        cross_val_score(fitting_model, X, y, cv=cv, scoring="balanced_accuracy")
-    )
-    return score
+    cvscore = cross_val_score(fitting_model, X, y, cv=cv, scoring="balanced_accuracy")
+    score = np.mean(cvscore)
+    variance = np.var(cvscore)
+    return score, variance
 
 def get_plot_args(pcamodel, axe, cv):
     print('actual dim:', pcamodel._q)
     Y_proj = pcamodel.get_projected_latent_variables(pcamodel._q)
     Y_notproj = pcamodel.latent_variables
     Y_pcaproj = pcamodel.get_pca_projected_latent_variables(pcamodel._q)
-    dr = UMAP()
-    dr_proj = dr.fit_transform(Y_proj)
-    dr_not_proj = dr.fit_transform(Y_notproj)
-    dr_pcaproj = dr.fit_transform(Y_pcaproj)
+    # dr = UMAP()
+    # dr_proj = dr.fit_transform(Y_proj)
+    # dr_not_proj = dr.fit_transform(Y_notproj)
+    # dr_pcaproj = dr.fit_transform(Y_pcaproj)
 
-    sns.scatterplot(x = dr_proj[:,0], y = dr_proj[:,1], hue=GT_names, ax=axe[0])
-    axe[0].set_title(f"Projection with {pcamodel._q} axes after a projection")
-    sns.scatterplot(x = dr_not_proj[:,0], y = dr_not_proj[:,1], hue=GT_names, ax=axe[1])
-    axe[1].set_title(f"Projection with {pcamodel._q} axes")
-    sns.scatterplot(x = dr_pcaproj[:,0], y = dr_pcaproj[:,1], hue=GT_names, ax=axe[1])
-    axe[1].set_title(f"Projection with {pcamodel._q} axes after pca projection")
+    # sns.scatterplot(x = dr_proj[:,0], y = dr_proj[:,1], hue=GT_names, ax=axe[0])
+    # axe[0].set_title(f"Projection with {pcamodel._q} axes after a projection")
+    # sns.scatterplot(x = dr_not_proj[:,0], y = dr_not_proj[:,1], hue=GT_names, ax=axe[1])
+    # axe[1].set_title(f"Projection with {pcamodel._q} axes")
+    # sns.scatterplot(x = dr_pcaproj[:,0], y = dr_pcaproj[:,1], hue=GT_names, ax=axe[2])
+    # axe[1].set_title(f"Projection with {pcamodel._q} axes after pca projection")
 
     for name, model in fitting_models.items():
-        score_proj = get_score(model, Y_proj, GT, cv)
-        score_notproj = get_score(model, Y_notproj, GT, cv)
-        score_pcaproj = get_score(model, Y_pcaproj, GT, cv)
-        fitting_scores[name]["proj"].append(score_proj)
-        fitting_scores[name]["notproj"].append(score_notproj)
-        fitting_scores[name]["pcaproj"].append(score_pcaproj)
+        score_proj, var_proj = get_score(model, Y_proj, GT, cv)
+        score_notproj, var_notproj = get_score(model, Y_notproj, GT, cv)
+        score_pcaproj, var_pcaproj = get_score(model, Y_pcaproj, GT, cv)
+        fitting_scores[name]["proj"]["score"].append(score_proj)
+        fitting_scores[name]["proj"]["var"].append(var_proj)
+        fitting_scores[name]["notproj"]["score"].append(score_notproj)
+        fitting_scores[name]["notproj"]["var"].append(var_notproj)
+        fitting_scores[name]["pcaproj"]["score"].append(score_pcaproj)
+        fitting_scores[name]["pcaproj"]["var"].append(var_pcaproj)
 
 
 for (axe,pcamodel) in zip(axes,pca.models):
     get_plot_args(pcamodel, axe, cv)
 
 
-plt.savefig("UMAP.pdf", format = "pdf")
-plt.show()
+# plt.savefig("UMAP.pdf", format = "pdf")
+# plt.show()
 plot_scores(fitting_scores, rank_pca)
 plt.savefig("scores.pdf", format = "pdf")
 plt.show()
