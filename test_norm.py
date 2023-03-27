@@ -12,46 +12,47 @@ from xgboost import XGBClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 
 fitting_models = {
-    # "KNeighbors": KNeighborsClassifier(),
-    # "MLP": MLPClassifier(),
+    "KNeighbors": KNeighborsClassifier(),
+    "MLP": MLPClassifier(),
     "DecisionTree": DecisionTreeClassifier(),
-    # "xgbc": XGBClassifier(),
+    "xgbc": XGBClassifier(),
     # "logreg": LogisticRegression(),
-    # "SVC": SVC(),
+    "SVC": SVC(),
 }
 colors = {"KNeighbors": "blue", "MLP": "black", "DecisionTree":"green", "xgbc":"red", "logreg":"pink", "SVC":"orange"}
 
 
 fitting_scores = {
-        model: {"proj": {"score":[], "var":[]} "notproj": {"score":[], "var":[]}, "pcaproj":{"score":[], "var":[]}} for model in fitting_models.keys()
+        model: {"proj": {"score":[], "var":[]} ,"notproj": {"score":[], "var":[]}, "pcaproj":{"score":[], "var":[]}} for model in fitting_models.keys()
 }
-pcamodels = ["proj", "notproj", "pcaproj"]
+pln_names = ["proj", "notproj", "pcaproj"]
+pln_colors= {"proj":"blue", "notproj":"red", "pcaproj":"green"}
 
-def plot_one_norm(ranks, proj_and_not_proj, modelname, linestyle, ax):
-    for key in proj_and_not_proj.keys():
-        ax.plot(ranks, proj_and_not_proj[key]["score"], label = modelname+key, linestyle = linestyle)
 
 def plot_scores(fitting_scores, ranks):
-    fig, axes = plt.subplots(len(fitting_scores.keys()), figsize = (30,15))
-    for ax in axes:
-        for modelname, proj_and_not_proj in fitting_scores.items():
-            ax.plot(ranks,proj_and_not_proj["proj"], label = modelname + "proj", linestyle = '--', color = colors[modelname])
-            ax.plot(ranks,proj_and_not_proj["notproj"], label = modelname + "notproj", linestyle = '-', color = colors[modelname])
-            ax.plot(ranks,proj_and_not_proj["pcaproj"], label = modelname + "pcaproj", linestyle = 'dotted', color = colors[modelname])
-    # plt.legend()
+    fig, axes = plt.subplots(len(fitting_models.keys()), figsize = (30,15))
+    for ax, (modelname, proj_and_not_proj) in zip(axes,fitting_scores.items()):
+        for pln_name in pln_names:
+            IC = np.array(proj_and_not_proj[pln_name]["var"])*1.96/(np.sqrt(cv))
+            mean = np.array(proj_and_not_proj[pln_name]["score"])
+            ax.plot(ranks,mean , label = pln_name, linestyle = '-', color = pln_colors[pln_name])
+            ax.plot(ranks, mean + IC , linestyle = '--', color = pln_colors[pln_name])
+            ax.plot(ranks,mean -IC , linestyle = '--', color = pln_colors[pln_name])
+        ax.legend()
+        ax.set_title(modelname)
 
 
-n = 3000
-max_class = 15
-dimension = 300
-cv = 10
+n = 10000
+max_class = 28
+dimension = 15000
+cv =10
 tol = 0.0001
 Y, GT, GT_names = get_sc_mark_data(max_n=n, max_class=max_class, max_dim=dimension)
 name= f"n{n}max_class{max_class}dimension{dimension}cv{cv}tol{tol}"
-# rank_pca = [2, 7,10]#, 20,30, 60, 80]#, 80, 150]
-rank_pca = [10,20,30,60,80]
+rank_pca = [2,3,4,5,6,7,8,9,10,20,30,60,80, 100, 125, 150, 200,250]
 
 pca = PLNPCA(ranks=rank_pca)
 
