@@ -45,23 +45,23 @@ def plot_scores(fitting_scores, ranks):
         ax.set_title(modelname)
 
 
-n = 10000
-max_class = 28
-dimension = 15000
+n = 1000
+max_class = 15
+dimension = 500
 cv =10
-tol = 0.0001
+tol = 0.001
 Y, GT, GT_names = get_sc_mark_data(max_n=n, max_class=max_class, max_dim=dimension)
+# name= f"n{n}max_class{max_class}dimension{dimension}tol{tol}"
 name= f"n{n}max_class{max_class}dimension{dimension}cv{cv}tol{tol}"
-rank_pca = [2,3,4,5,6,7,8,9,10,20,30,60,80, 100, 125, 150, 200,250]
-
+rank_pca = [1,2,3,4,5,6,7,8,9,10,20,30,60,80, 100, 125, 150, 200]
 pca = PLNPCA(ranks=rank_pca)
 
-pca.fit(Y, tol=tol)
-for rank in rank_pca:
-    pca[rank].save_model(str(rank)+ name)
+# pca.fit(Y, tol=tol)
+# for rank in rank_pca:
+#     pca[rank].save_model(str(rank)+ name)
 
 for rank in rank_pca:
-    pca[rank].load_model_from_file(str(rank)+ name)
+    pca[rank].load_model_from_file("saved_models/" + str(rank)+ name)
 
 fig, axes = plt.subplots(len(rank_pca), 3, figsize = (30,15))
 
@@ -111,5 +111,5 @@ for (axe,pcamodel) in zip(axes,pca.models):
 # plt.savefig("UMAP.pdf", format = "pdf")
 # plt.show()
 plot_scores(fitting_scores, rank_pca)
-plt.savefig("scores.pdf", format = "pdf")
+plt.savefig("scores_double_ortho_C.pdf", format = "pdf")
 plt.show()

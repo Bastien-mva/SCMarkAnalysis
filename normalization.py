@@ -66,7 +66,6 @@ class launching_arguments:
 
 
 def get_proccessed_raw_dict(raw_dict):
-    print("raw dict ", raw_dict)
     process_dict = {key: {"xgb": [], "svm": []} for key in raw_dict.keys()}
 
     for normalizer_name, list_scores in raw_dict.items():
@@ -126,22 +125,22 @@ def launch_dimension(la, pa, dimension):
             la.save_normalizer_score(dimension, my_normalizer, score)
 
 
-n = 3000
-max_class = 15
-cv = 8
+n = 12000
+max_class = 28
+cv = 10
 dimensions = np.arange(80, 220, 5)
-dimensions = np.concatenate((dimensions, np.arange(220,1395, 15)))
+dimensions = np.concatenate((dimensions, np.arange(220,340, 15)))
 if np.max(RANKS) > np.max(dimensions):
     raise Exception("ranks are higher than dimensions")
 
 my_normalizers = [
     pln(),
-    # plnzero(),
+    plnzero(),
     plnpca_lr_projected(),
     plnpca_vlr_projected(),
     plnpca_lr_notprojected(),
-    # plnpca_vlr_notprojected(),
-    plnpca_lr_pcaprojected(),
+    plnpca_vlr_notprojected(),
+    # plnpca_lr_pcaprojected(),
     lognorm(),
     pcalognorm80(),
     pcalognorm10(),
