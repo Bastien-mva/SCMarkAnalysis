@@ -15,9 +15,15 @@ def get_sc_mark_data(max_class=5, max_n=200, max_dim=100):
     le = LabelEncoder()
     GT = le.fit_transform(GT_name)
     filter = GT < max_class
-    GT = GT[filter]
-    GT_name = GT_name[filter]
-    Y = Y[filter]
+    unique, index = np.unique(GT, return_counts=True)
+    enough_elem = index>50
+    classes_with_enough_elem = unique[enough_elem]
+    filter_bis = np.isin(GT,classes_with_enough_elem)
+    mask = filter * filter_bis
+    GT = GT[mask]
+    GT_name = GT_name[mask]
+    Y = Y[mask]
+    GT = le.fit_transform(GT)
     not_only_zeros = np.sum(Y, axis=0) > 0
     Y = Y[:, not_only_zeros]
     var = np.var(Y, axis=0)
